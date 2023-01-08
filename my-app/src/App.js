@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import AddTaskForm from './components/AddTaskForm.jsx'
 import UpdateForm from './components/UpdateForm.jsx'
 import ToDo from './components/ToDo.jsx'
@@ -7,13 +7,15 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 
 import './App.css'
 
+import { getTasks, addATask, removeTask, updateATask, markTask } from './services/taskservice'
+
 function App() {
 
   // Tasks (ToDo List) State
   //////////////////////////
   const [toDo, setToDo] = useState([
-    {id: 1, title: 'Task 1', status: false},
-    {id: 2, title: 'Task 2', status: false}
+    // {id: 1, title: 'Task 1', status: false},
+    // {id: 2, title: 'Task 2', status: false}
   ])
 
   // Temp State
@@ -21,6 +23,13 @@ function App() {
   const [newTask, setNewTask] = useState('')
   const [updateData, setUpdateData] = useState('')
 
+
+  useEffect(()=>{
+    getTasks().then(tasks=>{
+      console.log(tasks);
+      setToDo(tasks);
+    });
+  }, []);
   // Add task 
   ///////////
   const addTask = () => {
@@ -31,10 +40,14 @@ function App() {
       // setToDo([...toDo, newEntry])
 
       // refactored
-      setToDo([
-        ...toDo, 
-        { id: num, title: newTask, status: false }
-      ])
+      
+
+      addATask({ id: num, title: newTask, status: false }).then(
+        setToDo([
+          ...toDo, 
+          { id: num, title: newTask, status: false }
+        ])
+      );
 
       setNewTask('')
 
@@ -49,8 +62,10 @@ function App() {
     // setToDo(newTasks)
 
     // refactored
-    setToDo(toDo.filter(task => task.id !== id))
-
+    
+    removeTask(id).then(
+      setToDo(toDo.filter(task => task.id !== id))
+    );
   }
 
   // Mark task as done or completed
@@ -66,11 +81,15 @@ function App() {
     // setToDo(newTask)
 
     // refactored
-    setToDo(toDo.map(
-      task => task.id === id 
-      ? ({ ...task, status: !task.status }) 
-      : (task) 
-    ))
+    
+
+    markTask(id).then(
+      setToDo(toDo.map(
+        task => task.id === id 
+        ? ({ ...task, status: !task.status }) 
+        : (task) 
+      ))
+    );
 
   }
 
@@ -106,12 +125,16 @@ function App() {
 
     // refactored
     let removeOldRecord = [...toDo].filter(task => task.id !== updateData.id)
-    setToDo([
-      ...removeOldRecord, 
-      updateData
-    ])
     
-    setUpdateData('')
+    updateATask(updateData).then(
+      setToDo([
+        ...removeOldRecord, 
+        updateData
+      ]),
+
+      setUpdateData('')
+    );
+    
 
   }
 
